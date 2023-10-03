@@ -1,0 +1,38 @@
+body {
+  margin: 0;
+}
+
+.container {
+  display: flex;
+  width: 100vw;
+
+  .pokemonGrid {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    padding-right: 55px;
+
+    img {
+      margin-right: -55px;
+      margin-bottom: -55px;
+    }
+  }
+}
+
+
+@media screen and (min-width: 1024px) {
+  .container {
+    .pokemonGrid {
+      padding-right: 110px;
+  
+      img {
+        height: 192px;
+        width: 192px;
+        margin-right: -110px;
+        margin-bottom: -110px;
+  
+      }
+    }
+  }
+  
+}
