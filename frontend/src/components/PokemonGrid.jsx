@@ -1,4 +1,5 @@
 import { zIndexFor } from "../utils/utils";
+import PropTypes from "prop-types";
 
 export default function PokemonGrid({ ids, checkClick, pokemon }) {
   function onClick(e) {
@@ -23,3 +24,9 @@ export default function PokemonGrid({ ids, checkClick, pokemon }) {
     </div>
   );
 }
+
+PokemonGrid.propTypes = {
+  ids: PropTypes.array,
+  checkClick: PropTypes.func,
+  pokemon: PropTypes.array,
+};

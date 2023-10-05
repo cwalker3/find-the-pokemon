@@ -1,5 +1,9 @@
 @import url(sanitize.css);
 
+:root {
+  --header-height: 150px;
+}
+
 body {
   margin: 0;
   
@@ -10,9 +14,27 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  position: relative;
+}
+
+header {
+  height: var(--header-height);
+  width: 100%;
+  position: fixed;
+  top: 0;
+  background-color: blue;
+  z-index: 99;
+  display: flex;
+
+  .middle {
+    .targets {
+      display: flex;
+    }
+  }
 }
 
 .pokemon-grid {
+  margin-top: calc(var(--header-height) + 50px);
   display: flex;
   flex-wrap: wrap;
   width: 80%;
@@ -24,10 +46,6 @@ body {
     align-items: center;
     justify-content: center;
 
-    &:hover {
-        z-index: 99;
-        border: 1px solid black;
-    }
 
     img {
        pointer-events: none;
@@ -42,8 +60,8 @@ body {
 @media screen and (min-width: 1024px) {
   .pokemon-grid {
     .pokemon-container {
-        width: 65px;
-        height: 65px;
+        width: 70px;
+        height: 70px;
     
         img {
           height: 192px;
