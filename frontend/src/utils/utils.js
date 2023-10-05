@@ -1,3 +1,22 @@
+export async function getAllPokemonData() {
+  try {
+    const promises = pokemonIds().map(async (id) => {
+      const response = await fetch(
+        `https://pokeapi.co/api/v2/pokemon/${id}`
+      );
+      return response.json();
+    });
+    return Promise.all(promises);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export function sample(array) {
+  const randomIndex = Math.floor(Math.random() * array.length);
+  return array[randomIndex];
+}
+
 //returns a larger z-index for smaller pokemon
 export function zIndexFor(pokemon) {
   const height = pokemon.height;
