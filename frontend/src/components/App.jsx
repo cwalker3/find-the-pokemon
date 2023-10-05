@@ -1,11 +1,7 @@
 import PokemonGrid from "./PokemonGrid";
 import { useState, useCallback, useEffect } from "react";
-import {
-  shuffledPokemonIds,
-  sample,
-  getAllPokemonData,
-  preloadImages,
-} from "../utils/utils";
+import { shuffledPokemonIds, sample, getAllPokemonData } from "../utils/utils";
+import Header from "./Header";
 
 function App() {
   const [ids, setIds] = useState(shuffledPokemonIds());
@@ -37,7 +33,7 @@ function App() {
 
   return (
     <>
-      <div>{targetId}</div>
+      <Header />
 
       {pokemonLoaded ? (
         <PokemonGrid
