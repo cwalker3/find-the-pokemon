@@ -1,88 +1,113 @@
-import PokemonGrid from "./PokemonGrid";
-import { useState, useCallback, useEffect } from "react";
-import { shuffledPokemonIds, sample, getAllPokemonData } from "../utils/utils";
+import { useState, useEffect } from "react";
+import { getPokemonData, preloadImages } from "../utils/utils";
 import Header from "./Header";
+import PokemonGrid from "./PokemonGrid";
+import GameOver from "./GameOver";
+
+const backendUrl = "http://localhost:3000";
 
 function App() {
-  const [ids, setIds] = useState(shuffledPokemonIds());
-  const [availableIds, setAvailableIds] = useState(ids);
+  const [gameId, setGameId] = useState(null);
   const [targetIds, setTargetIds] = useState([]);
-  const [allPokemonData, setAllPokemonData] = useState([]);
+  const [pokemonIds, setPokemonIds] = useState([]);
+  const [pokemonData, setPokemonData] = useState([]);
   const [pokemonLoaded, setPokemonLoaded] = useState(false);
   const [score, setScore] = useState(0);
   const [started, setStarted] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [userName, setUserName] = useState(null);
 
   useEffect(() => {
-    const initialTargets = [];
-    let availableIdsCopy = [...availableIds];
-    for (let i = 0; i < 3; i++) {
-      const idSample = sample(availableIdsCopy);
-      //ensure we don't get duplicate IDs
-      availableIdsCopy = availableIdsCopy.filter((id) => id != idSample);
-      initialTargets.push(idSample);
-    }
-    setAvailableIds(availableIdsCopy);
-    setTargetIds(initialTargets);
+    initializeGame();
   }, []);
 
-  useEffect(() => {
-    async function fetchPokemon() {
-      try {
-        const pokemonData = await getAllPokemonData();
-        setAllPokemonData(pokemonData);
-        setPokemonLoaded(true);
-      } catch (error) {
-        console.log(error);
-      }
-    }
-    fetchPokemon();
-  }, []);
-
-  function checkClick(clickedId) {
-    if (started) {
-      if (targetIds.includes(clickedId)) {
-        const sampleId = sample(availableIds);
-        setAvailableIds([...availableIds.filter((id) => id != sampleId)]);
-        setTargetIds(
-          targetIds.map((id) => {
-            return id == clickedId ? sampleId : id;
-          }),
-        );
-        setScore(score + 1);
-      } else {
-        console.log("wrong");
-      }
+  async function initializeGame() {
+    try {
+      let response = await fetch(backendUrl + "/games", {
+        method: "POST",
+      });
+      const game = await response.json();
+      setGameId(game.id);
+      setPokemonIds(game.pokemon_ids);
+      setTargetIds(game.target_ids);
+      const pokemonData = await getPokemonData(game.pokemon_ids);
+      preloadImages(pokemonData);
+      setPokemonData(pokemonData);
+      setPokemonLoaded(true);
+    } catch {
+      console.log("error initializing game");
     }
   }
 
-  function startGame() {
+  async function sendClick(clickedId) {
+    if (started) {
+      const response = await fetch(
+        backendUrl + `/games/${gameId}/check_input/${clickedId}`,
+        {
+          method: "POST",
+        },
+      );
+      const game = await response.json();
+      setScore(game.score);
+      setTargetIds(game.target_ids);
+    }
+  }
+
+  async function startGame() {
+    if (userName) {
+      await fetch(backendUrl + `/games/${gameId}/update_name/${userName}`, {
+        method: "POST",
+      });
+    }
+    const response = await fetch(backendUrl + `/games/${gameId}/start`, {
+      method: "POST",
+    });
+    const game = await response.json();
     setStarted(true);
+    setTimeRemaining(game.time_remaining);
   }
 
   function endGame() {
+    setGameOver(true);
+  }
+
+  function restartGame() {
+    setPokemonLoaded(false);
     setStarted(false);
+    setGameOver(false);
+    initializeGame();
   }
 
   return (
     <>
+      {gameOver && (
+        <GameOver
+          gameId={gameId}
+          backendUrl={backendUrl}
+          restartGame={restartGame}
+        />
+      )}
       <Header
         targetIds={targetIds}
         pokemonLoaded={pokemonLoaded}
-        pokemon={allPokemonData}
+        pokemonData={pokemonData}
         score={score}
         started={started}
         startGame={startGame}
+        endGame={endGame}
+        timeRemaining={timeRemaining}
+        setTimeRemaining={setTimeRemaining}
+        userName={userName}
+        setUserName={setUserName}
       />
 
-      {pokemonLoaded ? (
-        <PokemonGrid
-          ids={ids}
-          checkClick={checkClick}
-          pokemon={allPokemonData}
-        />
-      ) : (
-        <div>Loading</div>
-      )}
+      <PokemonGrid
+        pokemonIds={pokemonIds}
+        sendClick={sendClick}
+        pokemonData={pokemonData}
+        pokemonLoaded={pokemonLoaded}
+      />
     </>
   );
 }
